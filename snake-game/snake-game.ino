@@ -2,16 +2,30 @@
 
 LedControl lc=LedControl(11,13,10,1);	// crea objeto
 
-//Variables
-int snake_size = 2; //Size of the snake
 
-//Constants
-const int buttonLEFT = 4;
-const int buttonRIGHT = 3;
+/* Button inputs */
+const int buttonLEFT = 7;
+const int buttonRIGHT = 6;
+const int buttonUP = 5;
+const int buttonBOTTOM = 4;
+
+/* Buzzer */
+const int buzzer = 8;
+
+/* Read buttons time*/
+const unsigned long eventInterval= 50;
+unsigned long previousTime = 0;
+
+/* Movement time */
+const unsigned long eventInterval2= 300;
+unsigned long previusTime2 = 0;
 
 //Directions
 int up_bt = 0;
 int le_ri = 1;
+
+// Active position
+bool left = false, right = true, up = false, bt = false;
 
 //Snake struct
 typedef struct node
@@ -30,9 +44,13 @@ typedef struct
 } apple;
 
 
-//Snake head and tail
+//Snake variables
 node *head = NULL; //like list
 node *tail = NULL;
+int snake_size;
+int initial_row;
+int initial_col;
+
 
 //Declare an apple
 apple *ap;
@@ -63,9 +81,6 @@ byte off[8]= {				// array que contiene todos los elementos de las
 
 //Prototypes
 
-//Create the body of snake
-//void create_initial_snake();
-
 //Queueue operations
 void enqueue(int row, int column);
 void dequeue(void);
@@ -80,6 +95,9 @@ void go_up();
 void go_bottom();
 
 
+// Reset
+void (*resetFunc) (void) = 0;
+
 //Eat
 void eat_apple();
 
@@ -88,62 +106,97 @@ void setup() {
   lc.shutdown(0,false);			// enciende la matriz
   lc.setIntensity(0,4);			// establece brillo
   lc.clearDisplay(0);			// blanquea matriz
-  pinMode(buttonLEFT, INPUT);
-  pinMode(buttonRIGHT, INPUT);
+  
+  pinMode(buttonLEFT, INPUT_PULLUP);
+  pinMode(buttonRIGHT, INPUT_PULLUP);
+  pinMode(buttonUP, INPUT_PULLUP);
+  pinMode(buttonBOTTOM, INPUT_PULLUP);
+  noTone(buzzer);  
 
   //Aleatory sequence
   randomSeed(analogRead(0));
-
-  //Create the first apple
-  ap = malloc(sizeof(apple));
-  ap->row = random(0,8); //random row 
-  ap->col = random(0,8); //random col 
   
   //Create snake of 2
-  int initial_row = 0;
-  int initial_col = 3;
+  snake_size = 0;
+  // First position
+  initial_row = 0;
+  initial_col = 1;
+
   enqueue(initial_row,initial_col);
   lc.setLed(0,head->row,head->col,true);			// enciende LED
-
   enqueue(initial_row + up_bt,initial_col + le_ri);
   lc.setLed(0,head->row,head->col,true);			// enciende LED
   
-  delay(500);
+  //Create the first apple
+  ap = malloc(sizeof(apple));
+  
+  // Detectar posicion no ocupada
+  node *ptr;
+  while (ptr != NULL)
+  {
+    ap->row = random(0,8); //random row 
+    ap->col = random(0,8); //random col 
+
+    if (ap->row != ptr->row && ap->col != ptr->col)
+    {
+      return;
+    }
+    ptr = ptr->next;
+  }
+  delay(300);
 }
 
 void loop()
 {
+  unsigned long currentTime;
+
   //Move the snake between the limits
-  while((head->row >= 0 && head->row <= 7) && (head->col >= 0 && head->col <= 7))
+  while ((head->row >= 0 && head->row <= 7) && (head->col >= 0 && head->col <= 7))
   {
-    avanzar();
-    eat_apple();
+    /* Update millis */
+    currentTime = millis(); //Millis return the number of ms arduino has been on
 
-    if (digitalRead(buttonLEFT) == HIGH)
+    if (currentTime - previousTime >= eventInterval)
+    {
+      /* Execute this code */
+      
+      if (digitalRead(buttonLEFT) == LOW && right == false)
+        {
+          go_left();
+        }
+      else if (digitalRead(buttonRIGHT) == LOW && left == false)
       {
-        go_left();
+        go_right();
       }
-    else if (digitalRead(buttonRIGHT) == HIGH)
-    {
-      go_right();
-    }
-    else if (digitalRead(buttonLEFT) == HIGH)
-    {
-      go_up();
-    }
-    else if (digitalRead(buttonRIGHT) == HIGH)
-    {
-      go_bottom();
+      else if (digitalRead(buttonUP) == LOW && bt == false)
+      {
+        go_up();
+      }
+      else if (digitalRead(buttonBOTTOM) == LOW && up == false)
+      {
+        go_bottom();
+      }
+
+      /* Update the mark*/
+      previousTime = currentTime;
     }
 
-    //Picture snake
-    lc.setLed(0,head->row,head->col,true);			// enciende LED
-    //Picture apple
-    lc.setLed(0,ap->row,ap->col,true);			// enciende LED
-    delay(300);
+    if (currentTime - previusTime2 >= eventInterval2)
+    {
+       avanzar();
+       eat_apple();
 
+      //Picture snake
+      lc.setLed(0,head->row,head->col,true);			// enciende LED
+      //Picture apple
+      lc.setLed(0,ap->row,ap->col,true);			// enciende LED
+      previusTime2 = currentTime;
+    }
+
+   
   }
-  
+  tone(buzzer, 1046, 350); 
+
   //Game over
   for (int i = 0; i < 3; i++)
   {
@@ -160,7 +213,9 @@ void loop()
   }
   lc.clearDisplay(0);			// blanquea matriz
   lc.shutdown(0,true);
-  return;
+
+  delay(2000);
+  resetFunc();
 }
 
 
@@ -194,11 +249,19 @@ void enqueue(int row, int col)
     head->prev = n;
     head = n;
   }  
+  Serial.print("Row: ");
+  Serial.print(n->row);
+  Serial.print(" Col: ");
+  Serial.print(n->col);
+  Serial.println();
+  snake_size++;
+
 }
 
 
 void dequeue(void) //Is there a more simple way?
 {
+  snake_size--;
   //Serial.println("Dequeue");
   lc.setLed(0,tail->row,tail->col,false);     // apagar LED
   node *ptr = NULL;
@@ -218,21 +281,29 @@ void avanzar()
 void go_left()
 {
   le_ri = -1;
+  up_bt = 0; //Re start for not add new rows
+  left = true; right = false, up = false, bt = false;
 }
 
 void go_right()
 {
   le_ri = 1;
+  up_bt = 0;   //Re start for not add new rows
+  left = false; right = true, up = false, bt = false;
 }
 
 void go_up()
 {
   up_bt = -1;
+  le_ri = 0;   //Re start for not add new cols
+  left = false; right = false, up = true, bt = false;
 }
 
 void go_bottom()
 {
   up_bt = 1;
+  le_ri = 0;   //Re start for not add new cols
+  left = false; right = false, up = false, bt = true;
 }
 
 
@@ -243,34 +314,20 @@ void eat_apple()
     Serial.println("Collision");
     enqueue(ap->row + up_bt, ap->col + le_ri);
     delay(50);
-    ap->row = random(0,8);
-    ap->col = random(0,8);
+    
+    tone(buzzer, 1046, 300); 
+    // Detectar posicion no ocupada
+    node *ptr;
+    while (ptr != NULL)
+    {
+      ap->row = random(0,8); //random row 
+      ap->col = random(0,8); //random col 
+
+      if (ap->row != ptr->row && ap->col != ptr->col)
+      {
+        return;
+      }
+      ptr = ptr->next;
+    }
   }
 }
-
-/*
-void create_initial_snake()
-{
-
-  //First node of snake
-  node *n = malloc(sizeof(node));
-  if (n == NULL)
-  {
-    Serial.println("Couldn't allocate memory");
-    return 1;
-  } 
-  //Initial position
-  n->row = 0;
-  n->col = 1;
-  n->prev = NULL;
-  n->next = NULL;
-
-  //Initial node
-  if (head == NULL)
-  {
-    head = n;
-    tail = n;
-  }
-  enqueue(n->row, n->col-1);
-} */
-

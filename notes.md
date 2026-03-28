@@ -5,21 +5,23 @@ Simular una queue en una matriz led 8x8.
 
 ### Status:
 
-- Snake can move betweend the matrix and eat and apple
+- Functional snake can move and eat
 
 ### Work in progress:
 
-- Improve random applet position
+- Detect collision with itself amd add rest of the buttons and buzzer. Build a board
 
 ### Next:
 
+- [] Improve timing with millis.
 - [x] Create a diagram on excalidraw about enqueue and dequeue. 
 - [x] Add functions for all the movements.
 - [x] Add eat function
 - [ ] Add the rest of the buttons.
-- [ ] Don't allow inmediate reverse.
+- [X] Don't allow inmediate reverse.
 - [ ] Detect collision with itself.
 - [x] Finish the game and show animation also add buzzer.
+- [X] Reiniciar automaticamente tras 2 segundos del game over.
 
 ### Bugs:
 
