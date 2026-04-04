@@ -13,15 +13,15 @@ Simular una queue en una matriz led 8x8.
 
 ### Next:
 
-- [] Improve timing with millis.
+- [x] Improve timing with millis.
 - [x] Create a diagram on excalidraw about enqueue and dequeue. 
 - [x] Add functions for all the movements.
 - [x] Add eat function
-- [ ] Add the rest of the buttons.
-- [X] Don't allow inmediate reverse.
+- [x] Add the rest of the buttons.
+- [x] Don't allow inmediate reverse.
 - [ ] Detect collision with itself.
 - [x] Finish the game and show animation also add buzzer.
-- [X] Reiniciar automaticamente tras 2 segundos del game over.
+- [x] Reiniciar automaticamente tras 2 segundos del game over.
 
 ### Bugs:
 
@@ -33,7 +33,7 @@ Simular una queue en una matriz led 8x8.
 
 - Funcionamiento de Matriz LED 8x8:
     https://www.youtube.com/watch?v=_QNUIiuW2N0
-- Draws of how functions works: https://excalidraw.com/#room=1ab2688becc639e047eb,FWyV8JPTQcjrctd1AIT7rw
+- Draws of how functions works: https://excalidraw.com/#json=JhnBM-fNjapAoVMsVDmT8,V4UQwTKd2X3gRAj69tHy1A
 
 
 ### Free 
