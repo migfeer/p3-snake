@@ -33,7 +33,9 @@ Simular una queue en una matriz led 8x8.
 
 - Funcionamiento de Matriz LED 8x8:
     https://www.youtube.com/watch?v=_QNUIiuW2N0
-- Draws of how functions works: https://excalidraw.com/#json=JhnBM-fNjapAoVMsVDmT8,V4UQwTKd2X3gRAj69tHy1A
+- Draws of how functions works: 
+![draw](image-2.png)
+
 
 
 ### Free 
